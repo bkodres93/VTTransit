@@ -1,7 +1,14 @@
 package mad.vttransit;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
+import android.content.res.AssetManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -16,7 +23,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
 
@@ -35,6 +43,16 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
      */
     ViewPager mViewPager;
 
+    /**
+     * The list of routes that does not change.
+     */
+    static List<String> allRoutesList;
+
+    /**
+     * Runs when the Activity is created on startup of the application.
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +96,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        
+
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -178,12 +196,36 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+            ListView listView = (ListView) rootView.findViewById(R.id.listView);
+            allRoutesList = new ArrayList<String>();
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.text_view, allRoutesList);
+            listView.setAdapter(adapter);
             return rootView;
         }
+    }
+
+    /**
+     * Gets all of the Blacksburg Transit Routes from a text file.
+     *
+     * @return a list of routes
+     */
+    public List<Route> allRoutes()
+            throws IOException {
+        AssetManager manager = this.getAssets();
+        InputStream inputStream = manager.open("routes.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        InputStream inputStream2 = manager.open("routeshortnames.txt");
+        BufferedReader reader2 = new BufferedReader(new InputStreamReader(inputStream2));
+        List<Route> allRoutes = new ArrayList<Route>();
+        String name = "";
+        String shortName = "";
+        while ((name = reader.readLine()) != null) {
+            shortName = reader2.readLine();
+            allRoutes.add(new Route(name, shortName));
+        }
+        return allRoutes;
     }
 
 }
