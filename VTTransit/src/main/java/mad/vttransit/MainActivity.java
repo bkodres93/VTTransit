@@ -46,7 +46,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     /**
      * The list of routes that does not change.
      */
-    static List<String> allRoutesList;
+    static List<Route> allRoutesList;
 
     /**
      * Runs when the Activity is created on startup of the application.
@@ -78,6 +78,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             public void onPageSelected(int position) {
                 actionBar.setSelectedNavigationItem(position);
             }
+
         });
 
         // For each of the sections in the app, add a tab to the action bar.
@@ -86,11 +87,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             // the adapter. Also specify this Activity object, which implements
             // the TabListener interface, as the callback (listener) for when
             // this tab is selected.
-            actionBar.addTab(
-                    actionBar.newTab()
-                            .setText(mSectionsPagerAdapter.getPageTitle(i))
-                            .setTabListener(this));
+            actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
         }
+
     }
 
 
@@ -143,7 +142,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            return new PlaceholderFragment(position + 1);
         }
 
         @Override
@@ -157,13 +156,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             Locale l = Locale.getDefault();
             switch (position) {
                 case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
+                    return getString(R.string.title_favorites).toUpperCase(l);
                 case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
+                    return getString(R.string.title_routes).toUpperCase(l);
                 case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
+                    return getString(R.string.title_stops).toUpperCase(l);
                 case 3:
-                    return getString(R.string.title_section4).toUpperCase(l);
+                    return getString(R.string.title_map).toUpperCase(l);
             }
             return null;
         }
@@ -172,7 +171,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
          * fragment.
@@ -183,15 +182,18 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
+        public PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment(sectionNumber);
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
             return fragment;
         }
 
-        public PlaceholderFragment() {
+        public PlaceholderFragment(int sectionNumber) {
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            this.setArguments(args);
         }
 
         @Override
@@ -199,8 +201,17 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             ListView listView = (ListView) rootView.findViewById(R.id.listView);
-            allRoutesList = new ArrayList<String>();
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.text_view, allRoutesList);
+            allRoutesList = new ArrayList<Route>();
+            try {
+                allRoutesList = allRoutes();
+            } catch (Exception e) {
+                //Do nothing
+            }
+            List<String> routeNameList = new ArrayList<String>();
+            for (int i = 0; i < allRoutesList.size(); i++) {
+                routeNameList.add(allRoutesList.get(i).getFullName());
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.text_view, routeNameList);
             listView.setAdapter(adapter);
             return rootView;
         }
@@ -219,8 +230,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         InputStream inputStream2 = manager.open("routeshortnames.txt");
         BufferedReader reader2 = new BufferedReader(new InputStreamReader(inputStream2));
         List<Route> allRoutes = new ArrayList<Route>();
-        String name = "";
-        String shortName = "";
+        String name;
+        String shortName;
         while ((name = reader.readLine()) != null) {
             shortName = reader2.readLine();
             allRoutes.add(new Route(name, shortName));
