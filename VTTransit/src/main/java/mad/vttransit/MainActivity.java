@@ -1,30 +1,17 @@
 package mad.vttransit;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import android.content.res.AssetManager;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+
+import java.util.Locale;
 
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
 
@@ -42,11 +29,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
      * The {@link ViewPager} that will host the section contents.
      */
     ViewPager mViewPager;
-
-    /**
-     * The list of routes that does not change.
-     */
-    static List<Route> allRoutesList;
 
     /**
      * Runs when the Activity is created on startup of the application.
@@ -142,7 +124,18 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return new PlaceholderFragment(position + 1);
+            switch (position) {
+                case 0:
+                    return new FavoritesFragment();
+                case 1:
+                    return new RoutesFragment();
+                case 2:
+                    //return new StopsFragment();
+                case 3:
+                    //return new MapsFragment();
+                default:
+                    return new FavoritesFragment();
+            }
         }
 
         @Override
@@ -167,76 +160,4 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             return null;
         }
     }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment(sectionNumber);
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment(int sectionNumber) {
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            this.setArguments(args);
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            ListView listView = (ListView) rootView.findViewById(R.id.listView);
-            allRoutesList = new ArrayList<Route>();
-            try {
-                allRoutesList = allRoutes();
-            } catch (Exception e) {
-                //Do nothing
-            }
-            List<String> routeNameList = new ArrayList<String>();
-            for (int i = 0; i < allRoutesList.size(); i++) {
-                routeNameList.add(allRoutesList.get(i).getFullName());
-            }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.text_view, routeNameList);
-            listView.setAdapter(adapter);
-            return rootView;
-        }
-    }
-
-    /**
-     * Gets all of the Blacksburg Transit Routes from a text file.
-     *
-     * @return a list of routes
-     */
-    public List<Route> allRoutes()
-            throws IOException {
-        AssetManager manager = this.getAssets();
-        InputStream inputStream = manager.open("routes.txt");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        InputStream inputStream2 = manager.open("routeshortnames.txt");
-        BufferedReader reader2 = new BufferedReader(new InputStreamReader(inputStream2));
-        List<Route> allRoutes = new ArrayList<Route>();
-        String name;
-        String shortName;
-        while ((name = reader.readLine()) != null) {
-            shortName = reader2.readLine();
-            allRoutes.add(new Route(name, shortName));
-        }
-        return allRoutes;
-    }
-
 }
