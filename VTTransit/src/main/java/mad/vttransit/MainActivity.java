@@ -33,7 +33,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     /**
      * Runs when the Activity is created on startup of the application.
      *
-     * @param savedInstanceState
+     * @param savedInstanceState The saved instance state
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
